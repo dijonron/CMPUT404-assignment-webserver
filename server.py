@@ -1,6 +1,7 @@
 #  coding: utf-8 
 import socketserver
 import os
+from urllib.parse import urlparse
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -30,13 +31,17 @@ import os
 
 class MyWebServer(socketserver.BaseRequestHandler):
 
-    def build_response_header(self, protocol, code, mime):
+    def build_response_header(self, protocol, code, mime, location='', length=''):
         messages = {'200': 'OK', '301': 'Moved Permanently', '404': 'Not Found', '405': 'Method Not Allowed'}
 
         head = ' '.join([protocol, code, messages[code]])+'\r\n'
         content_type = 'Content-Type: text/{}; charset=utf-8\r\n'.format(mime)
-
-        return head + content_type + '\r\n'
+        if length:
+           length = 'Content-Length: {}\r\n'.format(length)
+        connection = 'Connection: close\r\n'
+        if location:
+            location = 'Location: {}\r\n'.format(location)
+        return head + content_type + length + connection + location + '\r\n'
 
 
     def handle(self):
@@ -46,9 +51,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
         request = self.data.decode()
 
         # Parse the headers 
-        headers = request.split('\n')[0].split()
-        method, filename, protocol = headers
-        
+        headers, host = request.split('\n')[0:2]
+        method, filename, protocol = headers.split()
+        host = host.split()[-1]
+
         # this server can only handle GET; return 405 for any other method
         if method != 'GET':
             response = self.build_response_header(protocol, '405', 'html')
@@ -56,36 +62,34 @@ class MyWebServer(socketserver.BaseRequestHandler):
             return
         
         # parse path and file, strip all ../ from path to be secure (i.e. keep it in root)
-        path, file = os.path.split(filename)
-        path = path.strip('../')
+        url = urlparse(filename)
+        path = url.path.lstrip('../')
 
-        if file == '':
-            file += 'index.html'
+        if path == '' or path[-1] == '/':
+            path += 'index.html'
         try:
-            if path:
-                page = open('/'.join(['www', path, file]))
-            else:
-                page = open('/'.join(['www', file]))
+            page = open('/'.join(['www', path]))
             content = page.read()
             page.close()
-            mime = file.split('.')[-1]
+            mime = path.split('.')[-1]
             response = self.build_response_header(protocol, '200', mime) + content
             self.request.sendall(response.encode())
         except Exception:
             # file not found, try to redirct or send 404
             try:
-                if path:
-                    page = open('/'.join(['www', path, file, 'index.html']))
-                else:
-                    page = open('/'.join(['www', file, 'index.html']))
-                
-                # if we can open page, send 301 and redirect
-                response = self.build_response_header(protocol, '301', 'html')
-                self.request.sendall(response.encode())
-                content = page.read()
+                page = open('/'.join(['www', path, 'index.html']))
                 page.close()
-                mime = file.split('.')[-1]
-                response = self.build_response_header(protocol, '200', mime) + content
+                # if we can open page, build location url and send 301
+                # build url by taking http://host/path/ and parse
+                location = urlparse('/'.join(['http:/', host, path, ''])).geturl()
+                print(location)
+                content = ' <html>\
+                                <head><title>301 Moved Permanently</title></head>\
+                                <body bgcolor="white">\
+                                <center><h1>301 Moved Permanently</h1></center>\
+                                </body>\
+                            </html>'
+                response = self.build_response_header(protocol, '301', 'html', location) + content
                 self.request.sendall(response.encode())
             except Exception:
                 response = self.build_response_header(protocol, '404', 'html')

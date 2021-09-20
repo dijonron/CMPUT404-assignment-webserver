@@ -1,6 +1,5 @@
 #  coding: utf-8 
 import socketserver
-import os
 from urllib.parse import urlparse
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
@@ -82,16 +81,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 page = open('/'.join(['www', path, 'index.html']))
                 page.close()
                 # if we can open page, build location url and send 301
-                # build url by taking http://host/path/ and parse
-                location = urlparse('/'.join(['http:/', host, path, ''])).geturl()
-                print(location)
-                content = ' <html>\
-                                <head><title>301 Moved Permanently</title></head>\
-                                <body bgcolor="white">\
-                                <center><h1>301 Moved Permanently</h1></center>\
-                                </body>\
-                            </html>'
-                response = self.build_response_header(protocol, '301', 'html', location) + content
+                # build url by taking /path/ and parse
+                location = urlparse('/'.join([path, ''])).geturl()
+                content = '<html><head><title>301 Moved Permanently</title></head><body bgcolor="white"><center><h1>301 Moved Permanently</h1></center></body></html>'
+                response = self.build_response_header(protocol, '301', 'html', location)
                 self.request.sendall(response.encode())
             except Exception:
                 response = self.build_response_header(protocol, '404', 'html')

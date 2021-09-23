@@ -24,4 +24,7 @@ examples thus some of the code is Copyright © 2001-2013 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
 compatible) http://docs.python.org/2/library/socketserver.html
 
-Additional contributions to server.py from Dalton Ronan, 2021
+Additional contributions to server.py from Dalton Ronan, 2021.
+External Resources:
+* https://datatracker.ietf.org/doc/html/rfc2616#section-14.13
+* https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types

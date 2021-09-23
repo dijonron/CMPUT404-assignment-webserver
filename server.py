@@ -1,6 +1,7 @@
 #  coding: utf-8 
 import socketserver
 from urllib.parse import urlparse
+from time import strftime, localtime
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -32,21 +33,28 @@ from urllib.parse import urlparse
 
 class MyWebServer(socketserver.BaseRequestHandler):
 
-    def build_response_header(self, protocol, code, mime, location='', length=''):
+    def build_response_header(self, protocol, code, mime='octet-stream', location=''):
         messages = {'200': 'OK', '301': 'Moved Permanently', '404': 'Not Found', '405': 'Method Not Allowed'}
 
-        head = ' '.join([protocol, code, messages[code]])+'\r\n'
-        content_type = 'Content-Type: text/{}; charset=utf-8\r\n'.format(mime)
-        if length:
-           length = 'Content-Length: {}\r\n'.format(length)
+        status_line = ' '.join([protocol, code, messages[code]])+'\r\n'
+
+        charset = ''
+        if mime != 'octet-stream':
+            charset = '; charset=utf-8'
+
+        content_type = 'Content-Type: text/{}{}\r\n'.format(mime, charset)
+
+        date = 'Date: {}\r\n'.format(strftime("%a, %d %b %Y %H:%M:%S %Z", localtime()))
         connection = 'Connection: close\r\n'
+
         if location:
             location = 'Location: {}\r\n'.format(location)
-        return head + content_type + length + connection + location + '\r\n'
+
+        return status_line + connection + date + content_type + location + '\r\n'
 
 
     def handle(self):
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(1024)
 
         # decode the incoming request so we can parse it
         request = self.data.decode()
@@ -58,7 +66,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # this server can only handle GET; return 405 for any other method
         if method != 'GET':
-            response = self.build_response_header(protocol, '405', 'html')
+            response = self.build_response_header(protocol, '405')
             self.request.sendall(bytearray(response, 'utf-8'))
             return
         
@@ -87,7 +95,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 response = self.build_response_header(protocol, '301', 'html', location)
                 self.request.sendall(response.encode())
             except Exception:
-                response = self.build_response_header(protocol, '404', 'html')
+                response = self.build_response_header(protocol, '404')
                 self.request.sendall(response.encode())
 
 

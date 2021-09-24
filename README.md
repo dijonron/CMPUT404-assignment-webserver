@@ -24,8 +24,7 @@ compatible) http://docs.python.org/2/library/socketserver.html
 
 Additional contributions to server.py from Dalton Ronan, 2021.
 
-External Resources:
-
+# External Resources and References:
 - https://datatracker.ietf.org/doc/html/rfc2616#section-14.13
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
-- Python: Get size of string in bytes (https://stackoverflow.com/questions/30686701/python-get-size-of-string-in-bytes) Answer By: [Kris](https://stackoverflow.com/users/3783770/kris) (https://stackoverflow.com/a/30686735/16792989) CC BY SA 3.0
+- Stackoverflow Question: [Python: Get size of string in bytes] (https://stackoverflow.com/questions/30686701/python-get-size-of-string-in-bytes) Answer By: [Kris](https://stackoverflow.com/users/3783770/kris) (https://stackoverflow.com/a/30686735/16792989) CC BY SA 3.0

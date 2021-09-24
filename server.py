@@ -3,7 +3,7 @@ import socketserver
 from urllib.parse import urlparse
 from time import strftime, localtime
 
-# Copyright 2013 Abram Hindle, Eddie Antonio Santos
+# Copyright 2013 Abram Hindle, Eddie Antonio Santos, Dalton Ronan
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ from time import strftime, localtime
 #
 # http://docs.python.org/2/library/socketserver.html
 #
-# Additional contributions made by Dalton Ronan, 2021
 #
 # run: python freetests.py
 

@@ -33,7 +33,7 @@ from time import strftime, localtime
 
 class MyWebServer(socketserver.BaseRequestHandler):
 
-    def build_response_header(self, protocol, code, mime='octet-stream', location=''):
+    def build_response_header(self, protocol, code, length = '', mime='octet-stream', location=''):
         messages = {'200': 'OK', '301': 'Moved Permanently', '404': 'Not Found', '405': 'Method Not Allowed'}
 
         status_line = ' '.join([protocol, code, messages[code]])+'\r\n'
@@ -44,13 +44,17 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         content_type = 'Content-Type: text/{}{}\r\n'.format(mime, charset)
 
+        content_length = ''
+        if length:
+            content_length += 'Content-Length: {}\r\n'.format(length)
+
         date = 'Date: {}\r\n'.format(strftime("%a, %d %b %Y %H:%M:%S %Z", localtime()))
         connection = 'Connection: close\r\n'
 
         if location:
             location = 'Location: {}\r\n'.format(location)
 
-        return status_line + connection + date + content_type + location + '\r\n'
+        return status_line + connection + date + content_type + content_length + location + '\r\n'
 
 
     def handle(self):
@@ -81,7 +85,14 @@ class MyWebServer(socketserver.BaseRequestHandler):
             content = page.read()
             page.close()
             mime = path.split('.')[-1]
-            response = self.build_response_header(protocol, '200', mime) + content
+
+            # Python : Get size of string in bytes
+            # https://stackoverflow.com/a/30686735/16792989
+            # Answered by : Kris (https://stackoverflow.com/users/3783770/kris)
+            # CC BY-SA 3.0
+            length = len(content.encode())
+
+            response = self.build_response_header(protocol, '200', length, mime) + content
             self.request.sendall(response.encode())
         except Exception:
             # file not found, try to redirct or send 404
